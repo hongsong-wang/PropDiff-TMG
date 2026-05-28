@@ -50,10 +50,10 @@ TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=0 python train.py --name deb
 ## Refinement
 ```bash
 CUDA_VISIBLE_DEVICES=7 python refinement.py \
-  --model_path /home/daibingxuan/workspace/microstructure_generation_3d/results/debug/textaddprop_aug/best-loss-epoch=1869-loss=0.1245.ckpt \
-  --output_folder /home/daibingxuan/workspace/microstructure_generation_3d/evaluate \
-  --dataset_path /home/daibingxuan/workspace/microstructure_generation_3d/data/datasets \
-  --classifier_ckpt /home/daibingxuan/workspace/microstructure_generation_3d/training_result/classifier.pth \
+  --model_path /home/xxx/workspace/microstructure_generation_3d/results/debug/textaddprop_aug/best-loss-epoch=1869-loss=0.1245.ckpt \
+  --output_folder /home/xxx/workspace/microstructure_generation_3d/evaluate \
+  --dataset_path /home/xxx/workspace/microstructure_generation_3d/data/datasets \
+  --classifier_ckpt /home/xxx/workspace/microstructure_generation_3d/training_result/classifier.pth \
   --batch_size 8 \
   --steps 50 \
   --num_generate 10 \
@@ -68,5 +68,5 @@ python FID.py
 ```
 ## Inference
 ```bash
-TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=7 python generate.py --model_path /home/daibingxuan/workspace/microstructure_generation_3d/results/debug/textaddprop_aug/best-loss-epoch=1869-loss=0.1245.ckpt --generate_method generate_based_on_text  --num_generate 10 --steps 100 --tensor_w 1 
+TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=7 python generate.py --model_path /home/xxx/workspace/microstructure_generation_3d/results/debug/textaddprop_aug/best-loss-epoch=1869-loss=0.1245.ckpt --generate_method generate_based_on_text  --num_generate 10 --steps 100 --tensor_w 1 
 ```
