@@ -1,33 +1,35 @@
 # 3D Microstructure Generation via Diffusion Model
 
-## 项目概述
-本项目实现了一个基于扩散模型的3D微观结构生成系统，支持**文本条件控制**和**物理属性条件控制**。模型能够根据材料描述文本和期望的物理属性（体积分数、弹性模量、泊松比等）生成对应的3D体素结构。
-![模型结构图](figure\overview.png)
+## Project Overview
+This project implements a 3D microstructure generation system based on a diffusion model, supporting **text-conditioned control** and **physical property-conditioned control**. The model can generate corresponding 3D voxel structures based on material descriptions and desired physical properties (volume fraction, elastic modulus, Poisson's ratio, etc.).
 
-## 项目结构
+![Model Architecture](figure/overview.png)
+
+## Project Structure
+```text
 Propdiff-TMG/
-├── train.py # 模型训练入口
-├── generate.py # 条件生成主程序
-├── refinement.py # 奖励引导的迭代优化生成
-├── chamfer.py # Chamfer距离计算
-├── FID.py # FID、CLIP、分类准确率等评估指标
-├── discriminator.py # 判别器（用于GAN-based评估/优化）
-├── p_evl.py # 物理属性预测误差评估
-├── figure.py # 结果可视化（散点图+拟合线）
-├── temp.py # 临时评估脚本（奖励优化之后统一FID指标的数据划分）
-├── network/ # 网络模块目录
-│ ├── model_trainer.py # 扩散模型训练器
-│ ├── model_utils.py # 网络基础模块
-│ ├── model.py # 扩散模型
-│ ├── classifier_net.py # 分类器
-│ ├── dual_encoder.py # 视觉-文本双编码器
-│ ├── data_loader_text.py # 文本条件数据加载
-│ ├── solver.py # 属性预测器
-│ └── unet.py # unet网络结构
-├── utils/ # 工具函数
-│ ├── mesh_utils.py # 体素转网格(obj)等
-│ └── utils.py # 通用工具函数
-└── data/ # 数据目录
+├── train.py                 # Model training entry
+├── generate.py              # Conditioned generation main program
+├── refinement.py            # Reward-guided iterative refinement generation
+├── chamfer.py               # Chamfer distance computation
+├── FID.py                   # Evaluation metrics (FID, CLIP, classification accuracy)
+├── discriminator.py         # Discriminator (for GAN-based evaluation/optimization)
+├── p_evl.py                 # Physical property prediction error evaluation
+├── figure.py                # Visualization (scatter plots + fitting lines)
+├── temp.py                  # Temporary evaluation script (data splitting for FID after reward optimization)
+├── network/                 # Network modules
+│   ├── model_trainer.py     # Diffusion model trainer
+│   ├── model_utils.py       # Basic network modules
+│   ├── model.py             # Diffusion model
+│   ├── classifier_net.py    # Classifier
+│   ├── dual_encoder.py      # Vision-text dual encoder
+│   ├── data_loader_text.py  # Text-conditioned data loader
+│   ├── solver.py            # Property predictor
+│   └── unet.py              # U-Net architecture
+├── utils/                   # Utility functions
+│   ├── mesh_utils.py        # Voxel to mesh (.obj) conversion
+│   └── utils.py             # General utilities
+└── data/                    # Data directory
 
 ## 环境配置
 ```bash
