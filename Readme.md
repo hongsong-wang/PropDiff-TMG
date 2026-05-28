@@ -1,4 +1,4 @@
-# 3D Microstructure Generation via Diffusion Model
+# Property-Informed Diffusion-Based Text-to-Microstructure Generation
 
 ## Project Overview
 This project implements a 3D microstructure generation system based on a diffusion model, supporting **text-conditioned control** and **physical property-conditioned control**. The model can generate corresponding 3D voxel structures based on material descriptions and desired physical properties (volume fraction, elastic modulus, Poisson's ratio, etc.).
