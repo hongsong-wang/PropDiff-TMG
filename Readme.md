@@ -31,23 +31,23 @@ Propdiff-TMG/
 │   └── utils.py             # General utilities
 └── data/                    # Data directory
 
-## 环境配置
+## Environment Setup
 ```bash
 conda env create -f environment.yaml
 conda activate microstructure
 ```
 
-## 数据集
+## Datasets
 下载数据集并放在 `data/` 目录：
 - [Geometries 2000](https://drive.google.com/drive/folders/1GFdJIUzeH-zgFM6HAgNifzAZXmKrmJs5)
 - [GenText-Microstruct](https://drive.google.com/drive/folders/1fNj_v-8YjtYCPoyXn6qZ-HzG0LqAJeV9)
 
-## 训练命令
+## Train
 ```bash
 TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=0 python train.py --name debug/old --batch_size 4 --new True --continue_training True --image_size 64 --training_epoch 2000 --ema_rate 0.999 --base_channels 64  --save_last True --save_every_epoch 200 --with_attention True  --lr 2e-4 --optimizier adamw --verbose False --use_tensor_condition True
 ```
 
-## 奖励优化命令
+## Refinement
 ```bash
 CUDA_VISIBLE_DEVICES=7 python refinement.py \
   --model_path /home/daibingxuan/workspace/microstructure_generation_3d/results/debug/textaddprop_aug/best-loss-epoch=1869-loss=0.1245.ckpt \
@@ -62,11 +62,11 @@ CUDA_VISIBLE_DEVICES=7 python refinement.py \
   --tensor_w 1.0 \
   --use_ema True
 ```
-## 评估命令
+## Evaluation
 ```bash
 python FID.py
 ```
-## 推理命令
+## Inference
 ```bash
 TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=7 python generate.py --model_path /home/daibingxuan/workspace/microstructure_generation_3d/results/debug/textaddprop_aug/best-loss-epoch=1869-loss=0.1245.ckpt --generate_method generate_based_on_text  --num_generate 10 --steps 100 --tensor_w 1 
 ```
