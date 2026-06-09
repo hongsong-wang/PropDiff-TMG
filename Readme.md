@@ -1,4 +1,4 @@
-# Property-Informed Diffusion-Based Text-to-Microstructure Generation
+# [Property-Informed Diffusion-Based Text-to-Microstructure Generation](https://openaccess.thecvf.com/content/CVPR2026/papers/Dai_Property-Informed_Diffusion-Based_Text-to-Microstructure_Generation_CVPR_2026_paper.pdf), [arXiv](https://arxiv.org/pdf/2606.08150)
 
 ## Project Overview
 This project implements a 3D microstructure generation system based on a diffusion model, supporting **text-conditioned control** and **physical property-conditioned control**. The model can generate corresponding 3D voxel structures based on material descriptions and desired physical properties (volume fraction, elastic modulus, Poisson's ratio, etc.).
@@ -70,3 +70,14 @@ python FID.py
 ```bash
 TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=7 python generate.py --model_path /home/xxx/workspace/microstructure_generation_3d/results/debug/textaddprop_aug/best-loss-epoch=1869-loss=0.1245.ckpt --generate_method generate_based_on_text  --num_generate 10 --steps 100 --tensor_w 1 
 ```
+
+
+## Reference
+```
+@inproceedings{dai2026property,
+  title={Property-Informed Diffusion-Based Text-to-Microstructure Generation},
+  author={Dai, Bingxuan and Wang, Hongsong and Gui, Jie},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={36758--36768},
+  year={2026}
+}
