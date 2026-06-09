@@ -1,5 +1,8 @@
 # [Property-Informed Diffusion-Based Text-to-Microstructure Generation](https://openaccess.thecvf.com/content/CVPR2026/papers/Dai_Property-Informed_Diffusion-Based_Text-to-Microstructure_Generation_CVPR_2026_paper.pdf), [arXiv](https://arxiv.org/pdf/2606.08150)
 
+<img width="5120" height="2560" alt="38726" src="https://github.com/user-attachments/assets/d986f3db-9ff9-40e3-8fd3-332acc113a76" />
+
+
 ## Project Overview
 This project implements a 3D microstructure generation system based on a diffusion model, supporting **text-conditioned control** and **physical property-conditioned control**. The model can generate corresponding 3D voxel structures based on material descriptions and desired physical properties (volume fraction, elastic modulus, Poisson's ratio, etc.).
 
