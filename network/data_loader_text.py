@@ -138,7 +138,6 @@ class VoxelDataset1(Dataset):
             voxel_data = np.unpackbits(np.fromfile(f, dtype=np.uint8))
             voxel = np.reshape(voxel_data, self.dim, order="F").astype(np.float32)
 
-        # 每 8 行翻转（与 voxeltotext.py 修复后保持一致）
         for i in range(8):
             tmp = voxel[i * 8:(i + 1) * 8, :, :]
             voxel[i * 8:(i + 1) * 8, :, :] = tmp[::-1]
