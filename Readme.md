@@ -46,8 +46,16 @@ conda activate microstructure
 - [GenText-Microstruct](https://drive.google.com/drive/folders/1fNj_v-8YjtYCPoyXn6qZ-HzG0LqAJeV9)
 
 ## Train
+GenText-Microstruct
+
 ```bash
 TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=0 python train.py --name debug/old --batch_size 4 --new True --continue_training True --image_size 64 --training_epoch 2000 --ema_rate 0.999 --base_channels 64  --save_last True --save_every_epoch 200 --with_attention True  --lr 2e-4 --optimizier adamw --verbose False --use_tensor_condition True
+```
+
+Geometries 2000
+
+```bash
+TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_VISIBLE_DEVICES=0 python train.py --name geometries2000 --batch_size 4 --new True --continue_training False --image_size 64 --training_epoch 2000 --ema_rate 0.999 --base_channels 64 --save_last True --save_every_epoch 200 --with_attention True --lr 2e-4 --optimizier adamw --verbose False --use_tensor_condition True --csv_path ""
 ```
 
 ## Refinement
