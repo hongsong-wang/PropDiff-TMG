@@ -5,7 +5,6 @@ from network.model_trainer import DiffusionModel
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning import seed_everything
-# from pytorch_lightning.plugins import DDPPlugin
 from pytorch_lightning.strategies import DDPStrategy
 from utils.utils import exists
 from pytorch_lightning import loggers as pl_loggers
@@ -16,11 +15,27 @@ import pdb
 
 torch.set_num_threads(2)
 
+
 def train_from_folder(
-    dataset_folder: str = "/home/daibingxuan/workspace/microstructure_generation_3d/data/datasets",
+    # ============================================================
+    # 主数据集：Geometries 2000（VoxelDataset）
+    # 路径：/home/daibingxuan/workspace/material_generation_LLM/data/dataset_material/
+    #   - geometries_2000x64x64x64.npy
+    #   - captions.csv
+    #   - properties.csv（use_tensor_condition=True 时需要）
+    #
+    # 备选数据集：GenText-Microstruct（VoxelDataset1）
+    # 路径：/home/daibingxuan/workspace/microstructure_generation_3d/data/dataset1/
+    #   - voxel_folder: randombulk_compress/ 或 rand8000/
+    #   - csv_path: voxel_descriptions_npr.csv 或 voxel_descriptions_rand.csv
+    #   - 需要 scaler_C11, scaler_C12, scaler_C44, scaler_bulk 在项目根目录
+    # ============================================================
+    dataset_folder: str = "/home/daibingxuan/workspace/material_generation_LLM/data/dataset_material",
     results_folder: str = './results',
+    # --- 以下为 VoxelDataset1（GenText-Microstruct）专用参数 ---
     voxel_folder: str = "/home/daibingxuan/workspace/microstructure_generation_3d/data/dataset1/randombulk_compress",
     csv_path: str = "/home/daibingxuan/workspace/microstructure_generation_3d/data/dataset1/voxel_descriptions_npr.csv",
+    # -----------------------------------------------------------
     name: str = "debug",
     image_size: int = 64,
     base_channels: int = 64,
@@ -31,25 +46,26 @@ def train_from_folder(
     with_attention: bool = True,
     num_heads: int = 4,
     dropout: float = 0.1,
-    noise_schedule: str = "linear",    # 噪声调度策略
-    ema_rate: float = 0.999,    # 指数滑动平均的速率
-    save_last: bool = True,     # 保存最后一个模型
-    verbose: bool = False,     # 是否打印详细信息
+    noise_schedule: str = "linear",
+    ema_rate: float = 0.999,
+    save_last: bool = True,
+    verbose: bool = False,
     training_epoch: int = 200,
     in_azure: bool = False,
     new: bool = True,
     continue_training: bool = False,
     debug: bool = False,
     use_text_condition: bool = False,
-    use_tensor_condition: bool = False,  
+    use_tensor_condition: bool = False,
     seed: int = 777,
     save_every_epoch: int = 20,
     gradient_clip_val: float = 1.
-):  
+):
     if not in_azure:
         debug = True
     else:
         debug = False
+
     # 创建文件夹
     results_folder = results_folder + "/" + name
     ensure_directory(results_folder)
@@ -87,8 +103,7 @@ def train_from_folder(
     seed_everything(seed)
 
     model = DiffusionModel(**model_args)
-   
-  
+
     if in_azure:
         try:
             log_dir = get_tensorboard_dir()
@@ -115,7 +130,7 @@ def train_from_folder(
         mode="max",
     )
     best_loss_checkpoint = ModelCheckpoint(
-        monitor="loss",             
+        monitor="loss",
         dirpath=results_folder,
         filename="best-loss-{epoch:02d}-{loss:.4f}_1",
         save_top_k=1,
@@ -144,15 +159,13 @@ def train_from_folder(
     else:
         trainer = Trainer(devices=-1,
                           accelerator="gpu",
-                          strategy = DDPStrategy(find_unused_parameters=find_unused_parameters),
+                          strategy=DDPStrategy(find_unused_parameters=find_unused_parameters),
                           logger=tb_logger,
-
                           max_epochs=training_epoch,
                           log_every_n_steps=1,
                           callbacks=[checkpoint_callback,
                                      best_loss_checkpoint])
 
-    
     last_ckpt_path = os.path.join(results_folder, last_ckpt)
     backup_ckpt_path = os.path.join(results_folder, "last_backup.ckpt")
     if continue_training and os.path.exists(last_ckpt_path) and not os.path.exists(backup_ckpt_path):
