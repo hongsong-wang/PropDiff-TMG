@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 from network.model_utils import EMA
 from network.data_loader_text import VoxelDataset, VoxelDataset1
 from pathlib import Path
-from torch.optim import AdamW,Adam
+from torch.optim import AdamW, Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from utils.utils import update_moving_average
 from pytorch_lightning import LightningModule
@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 import os
 import random
+
 
 class DiffusionModel(LightningModule):
     def __init__(
@@ -46,15 +47,18 @@ class DiffusionModel(LightningModule):
 
         self.automatic_optimization = False
         self.results_folder = Path(results_folder)
-        self.model = Propdiff(image_size=image_size, base_channels=base_channels,
-                                        attention_resolutions=attention_resolutions,
-                                        with_attention=with_attention,
-                                        dropout=dropout,
-                                        use_text_condition=use_text_condition,
-                                        use_tensor_condition=use_tensor_condition,
-                                        num_heads=num_heads,
-                                        noise_schedule=noise_schedule,
-                                        verbose=verbose)
+        self.model = Propdiff(
+            image_size=image_size,
+            base_channels=base_channels,
+            attention_resolutions=attention_resolutions,
+            with_attention=with_attention,
+            dropout=dropout,
+            use_text_condition=use_text_condition,
+            use_tensor_condition=use_tensor_condition,
+            num_heads=num_heads,
+            noise_schedule=noise_schedule,
+            verbose=verbose
+        )
 
         self.batch_size = batch_size
         self.lr = lr
@@ -66,18 +70,15 @@ class DiffusionModel(LightningModule):
         self.save_every_epoch = save_every_epoch
         self.traning_epoch = training_epoch
         self.gradient_clip_val = gradient_clip_val
-        self.use_text_condition = use_text_condition,
+        self.use_text_condition = use_text_condition
         self.use_tensor_condition = use_tensor_condition
-        
+
         self.ema_updater = EMA(ema_rate)
         self.ema_model = copy.deepcopy(self.model)
         self.optimizier = optimizier
         self.reset_parameters()
         set_requires_grad(self.ema_model, False)
-        if debug:
-            self.num_workers = 0
-        else:
-            self.num_workers = 2
+        self.num_workers = 0 if debug else 2
 
     def reset_parameters(self):
         self.ema_model.load_state_dict(self.model.state_dict())
@@ -92,48 +93,69 @@ class DiffusionModel(LightningModule):
             optimizer = Adam(self.model.parameters(), lr=self.lr)
         else:
             raise NotImplementedError
-        # **定义 ReduceLROnPlateau 学习率调度器**
-        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, min_lr=1e-5, verbose=True)
-
-        # **返回优化器和调度器**
+        scheduler = ReduceLROnPlateau(
+            optimizer, mode='min', factor=0.5,
+            patience=5, min_lr=1e-5, verbose=True
+        )
         return {
-        "optimizer": optimizer,
-        "lr_scheduler": scheduler
-         }
+            "optimizer": optimizer,
+            "lr_scheduler": scheduler
+        }
+
+    def _build_dataset(self):
+        """
+        根据 csv_path 是否提供，自动选择数据集：
+          - csv_path 非空 → VoxelDataset1（GenText-Microstruct）
+          - csv_path 为空 → VoxelDataset（Geometries 2000）
+        两个 Dataset 统一返回键名：occupancy, caption, tensor_feature
+        """
+        if self.csv_path and os.path.exists(self.csv_path):
+            # --- GenText-Microstruct 数据集 ---
+            _dataset = VoxelDataset1(
+                csv_path=self.csv_path,
+                voxel_folder=self.voxel_folder,
+                use_tensor_condition=self.use_tensor_condition
+            )
+        else:
+            # --- Geometries 2000 数据集（主数据集） ---
+            _dataset = VoxelDataset(
+                dataset_folder=self.dataset_folder,
+                transform=None,
+                use_tensor_condition=self.use_tensor_condition
+            )
+        return _dataset
 
     def train_dataloader(self):
-        # _dataset = VoxelDataset(dataset_folder=self.dataset_folder,
-        #                         transform=None,
-        #                         use_tensor_condition=self.use_tensor_condition
-        #                         )
-        _dataset = VoxelDataset1(csv_path=self.csv_path,
-                                voxel_folder=self.voxel_folder,
-                                use_tensor_condition=self.use_tensor_condition
-                                )
-        
-        # _newdataset = NewVoxelDataset(dataset_folder="/home/daibingxuan/workspace/microstructure_generation_3d/active_selected_data",
-        #                         transform=None,
-        #                         use_tensor_condition=self.use_tensor_condition)
-        # _dataset = ConcatDataset([_olddataset, _newdataset])
-        dataloader = DataLoader(_dataset,
-                                num_workers=self.num_workers,
-                                batch_size=self.batch_size, shuffle=True, pin_memory=True, drop_last=False)
+        _dataset = self._build_dataset()
+        dataloader = DataLoader(
+            _dataset,
+            num_workers=self.num_workers,
+            batch_size=self.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            drop_last=False
+        )
         self.iterations = len(dataloader)
         return dataloader
 
     def training_step(self, batch, batch_idx):
         occupancy = batch["occupancy"]
         caption = batch["caption"]
-        prop = None
-        # if self.use_tensor_condition:
-        #     tensor_feature = batch["tensor_feature"]
-        # else:
-        #     tensor_feature = None
-        
-        loss = self.model.training_loss(
-            occupancy, caption, prop, self.global_step, self.traning_epoch * self.iterations).mean()
+        # 两个 Dataset 统一使用 tensor_feature 键名
+        if self.use_tensor_condition:
+            prop = batch["tensor_feature"]
+        else:
+            prop = None
 
-        self.log("loss", loss.clone().detach().item(), on_step=True, on_epoch=True, prog_bar=True, logger=True, batch_size=self.batch_size)  
+        loss = self.model.training_loss(
+            occupancy, caption, prop,
+            self.global_step, self.traning_epoch * self.iterations
+        ).mean()
+
+        self.log("loss", loss.clone().detach().item(),
+                 on_step=True, on_epoch=True,
+                 prog_bar=True, logger=True,
+                 batch_size=self.batch_size)
         opt = self.optimizers()
         opt.zero_grad()
         self.manual_backward(loss)
@@ -141,14 +163,8 @@ class DiffusionModel(LightningModule):
             self.model.parameters(), self.gradient_clip_val)
         opt.step()
 
-
         self.update_EMA()
-        # # **添加学习率调度器**
-        # scheduler = self.lr_schedulers()
-        # scheduler.step(loss)
 
     def on_train_epoch_end(self):
-      
-        self.log("current_epoch",self.current_epoch, logger=True)
+        self.log("current_epoch", self.current_epoch, logger=True)
         return super().on_train_epoch_end()
-
